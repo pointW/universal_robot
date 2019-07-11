@@ -8,12 +8,15 @@ find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs moveit_core moveit_
 
 find_package(Boost REQUIRED COMPONENTS system)
 
+FIND_PACKAGE(PythonInterp)
+FIND_PACKAGE(PythonLibs)
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ur3_kin ur5_kin ur10_kin ur3_moveit_plugin ur5_moveit_plugin ur10_moveit_plugin
   CATKIN_DEPENDS roscpp geometry_msgs moveit_core moveit_kinematics moveit_ros_planning
     pluginlib tf_conversions
-  DEPENDS Boost
+  DEPENDS boost
 )
 
 
@@ -22,7 +25,7 @@ catkin_package(
 ###########
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} /usr/include/python2.7/)
 
 add_library(ur3_kin src/ur_kin.cpp)
 set_target_properties(ur3_kin PROPERTIES COMPILE_DEFINITIONS "UR3_PARAMS")
@@ -54,6 +57,19 @@ target_link_libraries(ur10_moveit_plugin
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ur10_kin)
+
+PYTHON_ADD_MODULE(ur_kin_py src/ur_kin_py.cpp)
+target_link_libraries(ur_kin_py ur5_kin boost_python boost_numpy ${PYTHON_LIBRARIES} ${Boost_LIBRARIES})
+set_target_properties(ur_kin_py
+PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION}
+SUFFIX ".so")
+
+# add_library(ur10_kin_py src/ur_kin_py.cpp)
+# target_link_libraries(ur10_kin_py ${PYTHON_LIBRARIES} boost_numpy ur10_kin)
+# set_target_properties(ur10_kin_py PROPERTIES
+  # PREFIX ""
+  # COMPILE_DEFINITIONS "UR10_PARAMS"
+  # LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_PYTHON_DESTINATION} )
 
 
 #############
